@@ -185,6 +185,8 @@
   /* honeypot - hidden from real users */
   .hp{ position:absolute; left:-9999px; opacity:0; height:0; }
 
+
+
   /* ---------- STAMP ---------- */
   .stamp-wrap{
     display:flex;
@@ -274,13 +276,16 @@
       <h1>Real Pakistani treats.<br><em>Minus</em> the gluten.</h1>
       <p class="sub">We're bringing real Pakistani gluten-free favourites — flours, nankhatai, cake rusk, biscotti and more — from Lahore to Melbourne. Every product locally lab-tested before it reaches your pantry.</p>
 
-      <form class="signup" id="signupForm">
+      <!-- Brevo success/error panels -->
+            <form class="signup" id="signupForm">
         <div class="signup-row">
-          <label for="email" class="visually-hidden" style="position:absolute;left:-9999px;">Email address</label>
-          <input type="email" id="email" name="email" placeholder="you@example.com" required>
-          <button type="submit" class="btn">Notify Me for Early Access</button>
+          <label for="EMAIL" style="position:absolute;left:-9999px;">Email address</label>
+          <input type="email" id="EMAIL" name="EMAIL" placeholder="you@example.com" required>
+          <button type="submit" class="btn" id="submitBtn">Notify Me for Early Access</button>
         </div>
-        <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off">
+        <!-- Brevo honeypot -->
+        <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;opacity:0;height:0;" tabindex="-1" autocomplete="off">
+        <input type="hidden" name="locale" value="en">
         <p class="fine">No spam — one email the day we launch. <a href="privacy-policy.html" style="color:var(--ivory-dim);text-decoration:underline;">Privacy Policy</a></p>
         <p class="form-msg" id="formMsg"></p>
       </form>
@@ -330,39 +335,44 @@
 </div>
 
 <script>
-  // Replace YOUR_FORM_ID below once a Formspree (or similar) form is set up.
-  const FORM_ENDPOINT = "https://formspree.io/f/xwvdenqk";
+  const BREVO_ENDPOINT = "https://c892bde3.sibforms.com/serve/MUIFAKck7stvcgsAj6VQg3k5EEobzZQ5tZbckv1P2JvDtTBzoyGa9OONwaj_EKWb3L0UUVGO7Yj4L2wr56ofjeVQWudrU_2l4JAkRcp1any3u0_njRAoxSc5bQ8SMYcYzcRDSSV9017vXTgyRYTXqCJfhyljtBZDoNVlka9V3Zy0Mvg_kg9ZtQBaLEf6ah19KYOGvEAjgmO1ZDGAMQ==";
 
   const form = document.getElementById('signupForm');
-  const msg = document.getElementById('formMsg');
+  const btn  = document.getElementById('submitBtn');
+  const msg  = document.getElementById('formMsg');
 
-  form.addEventListener('submit', async function(e){
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
-    msg.className = 'form-msg show';
-    msg.textContent = 'Submitting…';
+
+    // Disable button and show loading state
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
 
     const data = new FormData(form);
 
-    try{
-      const res = await fetch(FORM_ENDPOINT, {
+    try {
+      // mode: 'no-cors' because Brevo's form endpoint doesn't return CORS headers.
+      // We can't read the response, so we assume success if the fetch doesn't throw.
+      await fetch(BREVO_ENDPOINT, {
         method: 'POST',
         body: data,
-        headers: { 'Accept': 'application/json' }
+        mode: 'no-cors'
       });
-      if(res.ok){
-        msg.className = 'form-msg show ok';
-        msg.textContent = "Thanks — you're on the list. We'll email you the moment we launch.";
-        form.reset();
-      } else {
-        msg.className = 'form-msg show err';
-        msg.textContent = 'Something went wrong — please try again, or email us directly.';
-      }
-    } catch(err){
+
+      msg.className = 'form-msg show ok';
+      msg.textContent = "You’re on the list — we’ll email you the moment we launch.";
+      form.reset();
+      btn.textContent = '✓ Done';
+
+    } catch(err) {
+      // Only fires on genuine network failure (no internet, DNS error, etc.)
       msg.className = 'form-msg show err';
-      msg.textContent = 'Something went wrong — please try again, or email us directly.';
+      msg.textContent = 'Something went wrong — please check your connection or email us at tauqeer@guiltfreefoods.com.au';
+      btn.disabled = false;
+      btn.textContent = 'Notify Me for Early Access';
     }
   });
 </script>
 
 </body>
-</html> 
+</html>
